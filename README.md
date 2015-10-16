@@ -11,10 +11,9 @@ $ npm install
 
 ## Development
 
-Builds the application and starts a webserver with livereload. By default the webserver starts at port 1337.
-You can define a port with `$ gulp --port 3333`.
-
+Do node server for starting the server and gulp will start a watch task
 ```
+$ node server
 $ gulp
 ```
 
