@@ -1,6 +1,8 @@
 var gulp = require('gulp');
 var path = require('path');
 var $ = require('gulp-load-plugins')();
+var Proxy = require('gulp-connect-proxy');
+var livereload = require('gulp-livereload');
 var del = require('del');
 // set variable via $ gulp --type production
 var environment = $.util.env.type || 'development';
@@ -30,7 +32,8 @@ gulp.task('scripts', function() {
     .pipe(isProduction ? $.uglifyjs() : $.util.noop())
     .pipe(gulp.dest(dist + 'js/'))
     .pipe($.size({ title : 'js' }))
-    .pipe($.connect.reload());
+    .pipe(livereload());
+    //.pipe($.connect.reload());
 });
 
 // copy html from app to dist
@@ -38,7 +41,8 @@ gulp.task('html', function() {
   return gulp.src(app + 'index.html')
     .pipe(gulp.dest(dist))
     .pipe($.size({ title : 'html' }))
-    .pipe($.connect.reload());
+    .pipe(livereload());
+    //.pipe($.connect.reload());
 });
 
 gulp.task('styles',function(cb) {
@@ -54,8 +58,19 @@ gulp.task('styles',function(cb) {
     .pipe($.autoprefixer({browsers: autoprefixerBrowsers})) 
     .pipe(gulp.dest(dist + 'css/'))
     .pipe($.size({ title : 'css' }))
-    .pipe($.connect.reload());
+    .pipe(livereload());
+    //.pipe($.connect.reload());
 
+});
+
+gulp.task('webserver', function() {
+  gulp.src(dist)
+    .pipe(webserver({
+      port: port,
+      livereload: true,
+      directoryListing: true,
+      open: true
+    }));
 });
 
 // add livereload on the given port
@@ -65,6 +80,11 @@ gulp.task('serve', function() {
     port: port,
     livereload: {
       port: 35729
+    },
+    middleware: function(connect, opt) {
+        opt.route = '/proxy';
+        var proxy = new Proxy(opt);
+        return [proxy];
     }
   });
 });
@@ -78,6 +98,10 @@ gulp.task('images', function(cb) {
 
 // watch styl, html and js file changes
 gulp.task('watch', function() {
+  livereload.listen({
+    auto: false,
+    host: 'http://localhost:3000/'
+  });
   gulp.watch(app + 'stylus/*.styl', ['styles']);
   gulp.watch(app + 'index.html', ['html']);
   gulp.watch(app + 'scripts/**/*.js', ['scripts']);
@@ -90,8 +114,10 @@ gulp.task('clean', function(cb) {
 });
 
 
+
+
 // by default build project and then watch files in order to trigger livereload
-gulp.task('default', ['build', 'serve', 'watch']);
+gulp.task('default', ['build', 'watch']);
 
 // waits until clean is finished then builds the project
 gulp.task('build', ['clean'], function(){

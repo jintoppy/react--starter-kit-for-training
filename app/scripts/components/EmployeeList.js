@@ -4,7 +4,7 @@ module.exports = React.createClass({
 
 	render: function(){
 		return (<div>
-			Hello cool
+			Hello students
 			</div>)
 	}
 });
